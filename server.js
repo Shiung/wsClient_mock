@@ -27,6 +27,19 @@ const heartbeat = setInterval(() => {
   }
 }, 30_000);
 
+let count = 0
+const timer = 2000
+const tickLoop = (func) => {
+  count = 0
+  const tick = () => {
+    if (count > 5) return
+    if (typeof func === 'function') func()
+    count++
+    setTimeout(tick, timer)
+  }
+  setTimeout(tick, timer)
+}
+
 wss.on('connection', (ws, req) => {
   ws.id = nextId++;
   ws.isAlive = true;
@@ -35,6 +48,7 @@ wss.on('connection', (ws, req) => {
   console.log(`[+] client#${ws.id} connected from ${req.socket.remoteAddress} (total: ${wss.clients.size})`);
   send(ws, { type: 'welcome', id: ws.id, time: new Date().toISOString() });
 
+  tickLoop(() => send(ws, { type: 'msg', data: 'haha'}))
   ws.on('message', (data, isBinary) => {
     if (isBinary) {
       console.log(`[client#${ws.id}] <binary ${data.length} bytes>`);
